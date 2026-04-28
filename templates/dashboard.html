@@ -36,13 +36,18 @@
 </tr>
 
 {% for row in logs %}
-<tr class="log-row">
-    <td>{{ row[1] }}</td>             <!-- Username -->
-    <td>{{ row[2] }}</td>             <!-- Password -->
-    <td class="ip">{{ row[3] }}</td>  <!-- IP -->
-    <td class="{{ row[5] }}">{{ row[5] }}</td> <!-- Risk -->
+<tr class="log-row" onclick="highlightRow(this)">
+    <td onclick="showLocationOnMap('{{ row[3] }}')">{{ row[1] }}</td>
+    <td onclick="showLocationOnMap('{{ row[3] }}')">{{ row[2] }}</td>
+    <td class="ip" onclick="showLocationOnMap('{{ row[3] }}')">{{ row[3] }}</td>
+    <td class="{{ row[5] }}" onclick="showLocationOnMap('{{ row[3] }}')">{{ row[5] }}</td>
 </tr>
 {% endfor %}
+<div id="mapContainer" style="margin-top:20px; text-align:center;">
+    <h3>Attacker Location</h3>
+    <p id="locationText" style="color:white;"></p>
+    <iframe id="mapFrame" width="600" height="350" style="border:0; border-radius:10px;"></iframe>
+</div>
 
 </table>
 </div>

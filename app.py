@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import sqlite3
 from datetime import datetime
+import random
 
 app = Flask(__name__)
 
@@ -31,7 +32,16 @@ def analyze_risk(username, password):
     elif len(password) < 6:
         return "Medium"
     return "Low"
-
+# ✅ ADD HERE
+def random_ip():
+    sample_ips = [
+        "8.8.8.8",        # USA
+        "1.1.1.1",        # Cloudflare
+        "142.250.183.78", # Google
+        "185.199.108.153",# GitHub
+        "13.127.0.1"      # India (AWS)
+    ]
+    return random.choice(sample_ips)
 # ---------------- ROUTES ----------------
 @app.route('/')
 def login_page():
@@ -41,7 +51,7 @@ def login_page():
 def login_attempt():
     username = request.form.get('username')
     password = request.form.get('password')
-    ip_addr = request.remote_addr
+    ip_addr = random_ip()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     risk = analyze_risk(username, password)
 
