@@ -1,99 +1,97 @@
-import random
-import time
 from flask import Flask, render_template, request
 import sqlite3
 from datetime import datetime
 
 app = Flask(__name__)
 
-# Create database
+# ---------------- DATABASE ----------------
 def init_db():
-    con = sqlite3.connect("attacks.db")
-    cur = con.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS attacks(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ip TEXT,
-        username TEXT,
-        password TEXT,
-        time TEXT,
-        risk TEXT
-    )
-    """)
-    con.commit()
-    con.close()
+    conn = sqlite3.connect('attacks.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            password TEXT,
+            ip_address TEXT,
+            timestamp TEXT,
+            risk_level TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-init_db()
+# ---------------- RISK ANALYSIS ----------------
+def analyze_risk(username, password):
+    common_users = ['admin', 'root', 'administrator', 'superuser']
+    weak_passwords = ['123456', 'password', 'admin123', '12345']
+    
+    if username.lower() in common_users or password in weak_passwords:
+        return "High"
+    elif len(password) < 6:
+        return "Medium"
+    return "Low"
 
-@app.route("/")
-def home():
-    return render_template("login.html")
+# ---------------- ROUTES ----------------
+@app.route('/')
+def login_page():
+    return render_template('login.html')
 
-@app.route("/login", methods=["POST"])
-def login():
-    username = request.form["username"]
-    password = request.form["password"]
-    ip = request.remote_addr
-    time = datetime.now()
+@app.route('/login', methods=['POST'])
+def login_attempt():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    ip_addr = request.remote_addr
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    risk = analyze_risk(username, password)
 
-    # Risk logic
-    score = 0
+    conn = sqlite3.connect('attacks.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO logs (username, password, ip_address, timestamp, risk_level)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (username, password, ip_addr, timestamp, risk))
+    conn.commit()
+    conn.close()
 
-    if username in ["admin", "root"]:
-        score += 2
+    return render_template('login.html', error="Invalid system credentials. Access Denied.")
 
-    if password in ["123456", "password"]:
-        score += 2
-
-    con = sqlite3.connect("attacks.db")
-    cur = con.cursor()
-
-    cur.execute("SELECT COUNT(*) FROM attacks WHERE ip=?", (ip,))
-    attempts = cur.fetchone()[0]
-
-    if attempts > 5:
-        score += 3
-
-    if score >= 6:
-        risk = "HIGH"
-    elif score >= 3:
-        risk = "MEDIUM"
-    else:
-        risk = "LOW"
-
-    cur.execute("INSERT INTO attacks(ip,username,password,time,risk) VALUES(?,?,?,?,?)",
-                (ip, username, password, str(time), risk))
-
-    con.commit()
-    con.close()
-
-    messages = [
-    "Invalid Credentials",
-    "Incorrect username or password",
-    "Login failed. Try again",
-    "Too many attempts, try later"
-]
-
-    message = random.choice(messages)
-
-    return render_template("login.html", message=message)
-
-@app.route("/dashboard")
+@app.route('/dashboard')
 def dashboard():
-    con = sqlite3.connect("attacks.db")
-    cur = con.cursor()
+    conn = sqlite3.connect('attacks.db')
+    cursor = conn.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM attacks")
-    total = cur.fetchone()[0]
+    # Get logs
+    cursor.execute('SELECT * FROM logs ORDER BY id DESC')
+    logs = cursor.fetchall()
 
-    cur.execute("SELECT COUNT(*) FROM attacks WHERE risk='HIGH'")
-    high = cur.fetchone()[0]
+    # Risk counts
+    cursor.execute('SELECT risk_level, COUNT(*) FROM logs GROUP BY risk_level')
+    stats = dict(cursor.fetchall())
 
-    cur.execute("SELECT * FROM attacks ORDER BY id DESC LIMIT 10")
-    logs = cur.fetchall()
+    conn.close()
 
-    con.close()
+    # -------- FIXED PART (IMPORTANT) --------
+    labels = ["Low", "Medium", "High"]
+    values = [
+        stats.get("Low", 0),
+        stats.get("Medium", 0),
+        stats.get("High", 0)
+    ]
 
-    return render_template("dashboard.html", total=total, high=high, logs=logs)
+    total = sum(values)
+    high = stats.get("High", 0)
 
-app.run(debug=True)
+    return render_template(
+        'dashboard.html',
+        logs=logs,
+        labels=labels,
+        values=values,
+        total=total,
+        high=high
+    )
+
+# ---------------- RUN ----------------
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True, port=5000)

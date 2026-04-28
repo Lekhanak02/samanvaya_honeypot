@@ -1,35 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Smart Honeypot Dashboard</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h1>Honeypot Dashboard</h1>
+<h1>Smart Honeypot Dashboard</h1>
+<h3>Live Attacker Intelligence</h3>
 
-<p>Total Attacks: {{ total }}</p>
-<p>High Risk: {{ high }}</p>
+<!-- CARDS -->
+<div class="cards">
+    <div class="card">
+        <h4>Total Attacks</h4>
+        <h2>{{ total }}</h2>
+    </div>
 
-<table border="1">
+    <div class="card">
+        <h4>High Risk</h4>
+        <h2 class="high">{{ high }}</h2>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-container">
+<h3>Recent Attack Logs</h3>
+<table>
 <tr>
-<th>IP</th>
 <th>Username</th>
 <th>Password</th>
+<th>IP</th>
 <th>Risk</th>
 </tr>
 
 {% for row in logs %}
-<tr>
-<td>{{ row[1] }}</td>
-<td>{{ row[2] }}</td>
-<td>{{ row[3] }}</td>
-<td>{{ row[5] }}</td>
+<tr class="log-row">
+    <td>{{ row[1] }}</td>             <!-- Username -->
+    <td>{{ row[2] }}</td>             <!-- Password -->
+    <td class="ip">{{ row[3] }}</td>  <!-- IP -->
+    <td class="{{ row[5] }}">{{ row[5] }}</td> <!-- Risk -->
 </tr>
 {% endfor %}
-</table>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
 
+</table>
+</div>
+
+<!-- CHARTS -->
+<div class="charts">
+    <div class="chart-box">
+        <canvas id="lineChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+        <canvas id="pieChart"></canvas>
+    </div>
+</div>
+
+<!-- DATA FOR CHART -->
+<script id="chart-data" type="application/json">
+{
+    "labels": {{ labels | default([]) | tojson }},
+    "values": {{ values | default([]) | tojson }}
+}
+</script>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
