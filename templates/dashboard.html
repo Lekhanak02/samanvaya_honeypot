@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Honeypot Dashboard</h1>
+
+<p>Total Attacks: {{ total }}</p>
+<p>High Risk: {{ high }}</p>
+
+<table border="1">
+<tr>
+<th>IP</th>
+<th>Username</th>
+<th>Password</th>
+<th>Risk</th>
+</tr>
+
+{% for row in logs %}
+<tr>
+<td>{{ row[1] }}</td>
+<td>{{ row[2] }}</td>
+<td>{{ row[3] }}</td>
+<td>{{ row[5] }}</td>
+</tr>
+{% endfor %}
+</table>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+</body>
+</html>

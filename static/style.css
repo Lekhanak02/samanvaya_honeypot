@@ -1,0 +1,16 @@
+body {
+    background: black;
+    color: lime;
+    font-family: Arial;
+    text-align: center;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px;
+}
+
+table {
+    margin: auto;
+    color: white;
+}
