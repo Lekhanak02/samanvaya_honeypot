@@ -27,29 +27,49 @@
 <!-- TABLE -->
 <div class="table-container">
 <h3>Recent Attack Logs</h3>
+
 <table>
 <tr>
-<th>Username</th>
-<th>Password</th>
-<th>IP</th>
-<th>Risk</th>
+    <th>Username</th>
+    <th>Password</th>
+    <th>IP</th>
+    <th>Risk</th>
 </tr>
 
 {% for row in logs %}
-<tr class="log-row" onclick="highlightRow(this)">
-    <td onclick="showLocationOnMap('{{ row[3] }}')">{{ row[1] }}</td>
-    <td onclick="showLocationOnMap('{{ row[3] }}')">{{ row[2] }}</td>
-    <td class="ip" onclick="showLocationOnMap('{{ row[3] }}')">{{ row[3] }}</td>
-    <td class="{{ row[5] }}" onclick="showLocationOnMap('{{ row[3] }}')">{{ row[5] }}</td>
+<tr class="log-row" data-risk="{{ row[5] }}" onclick="highlightRow(this)">
+    
+    <!-- Username -->
+    <td onclick="showLocationOnMap('{{ row[3] }}')">
+        {{ row[1] }}
+    </td>
+
+    <!-- Password -->
+    <td onclick="showLocationOnMap('{{ row[3] }}')">
+        {{ row[2] }}
+    </td>
+
+    <!-- IP -->
+    <td class="ip" onclick="showLocationOnMap('{{ row[3] }}')">
+        {{ row[3] }}
+    </td>
+
+    <!-- Risk -->
+    <td class="{{ row[5] }}" onclick="showLocationOnMap('{{ row[3] }}')">
+        {{ row[5] }}
+    </td>
+
 </tr>
 {% endfor %}
+
+</table>
+</div>
+
+<!-- ✅ MAP (OUTSIDE TABLE — IMPORTANT) -->
 <div id="mapContainer" style="margin-top:20px; text-align:center;">
     <h3>Attacker Location</h3>
     <p id="locationText" style="color:white;"></p>
     <iframe id="mapFrame" width="600" height="350" style="border:0; border-radius:10px;"></iframe>
-</div>
-
-</table>
 </div>
 
 <!-- CHARTS -->
@@ -62,6 +82,9 @@
         <canvas id="pieChart"></canvas>
     </div>
 </div>
+
+<!-- DOWNLOAD BUTTON -->
+<button class="download-btn" onclick="downloadCSV()">Download Logs</button>
 
 <!-- DATA FOR CHART -->
 <script id="chart-data" type="application/json">

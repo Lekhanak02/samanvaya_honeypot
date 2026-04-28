@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 from datetime import datetime
 import random
@@ -65,7 +65,6 @@ def login_attempt():
     conn.close()
 
     return render_template('login.html', error="Invalid system credentials. Access Denied.")
-
 @app.route('/dashboard')
 def dashboard():
     conn = sqlite3.connect('attacks.db')

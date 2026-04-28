@@ -73,6 +73,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ✅ HIGH RISK ALERT
+    const hasHighRisk = Array.from(document.querySelectorAll(".log-row"))
+        .some(row => {
+            const risk = row.getAttribute("data-risk");
+            return risk === "High" || risk === "HIGH" || risk === "CRITICAL";
+        });
+
+     if (hasHighRisk && !sessionStorage.getItem("shownHighRiskAlert")) {
+    const banner = document.createElement("div");
+    banner.textContent = "⚠️ High Risk Attack Detected!";
+    banner.style.background = "red";
+    banner.style.color = "white";
+    banner.style.padding = "10px";
+    banner.style.textAlign = "center";
+    document.body.prepend(banner);
+
+    sessionStorage.setItem("shownHighRiskAlert", "true");
+}
+
 });
 
 
@@ -81,6 +100,7 @@ function showLocationOnMap(ip) {
 
     const mapFrame = document.getElementById("mapFrame");
     const mapContainer = document.getElementById("mapContainer");
+     if (!mapFrame || !mapContainer) return;
 
     fetch(`http://ip-api.com/json/${ip}`)
         .then(res => res.json())
@@ -94,8 +114,7 @@ function showLocationOnMap(ip) {
                 mapFrame.src = `https://www.google.com/maps?q=${lat},${lon}&z=5&output=embed`;
 
                 const locationText = document.getElementById("locationText");
-                locationText.innerHTML = `Location: ${data.city}, ${data.country}`;
-
+                locationText.innerHTML = `Location: ${data.city}, ${data.country} <br>ISP: ${data.isp}`;
                 mapContainer.scrollIntoView({ behavior: "smooth" });
 
             } else {
@@ -114,3 +133,4 @@ function highlightRow(row) {
 
     row.style.background = "#003333";
 }
+

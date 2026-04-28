@@ -157,3 +157,28 @@ td {
     border-radius: 10px;
     box-shadow: 0 0 15px #00ffcc;
 }
+/* Download Logs Button */
+button {
+    background: linear-gradient(135deg, #00ffcc, #00ccff);
+    color: #000;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+}
+
+/* Hover Effect */
+button:hover {
+    background: linear-gradient(135deg, #00ccff, #00ffcc);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.7);
+}
+
+/* Click Effect */
+button:active {
+    transform: scale(0.95);
+}
