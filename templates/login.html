@@ -4,38 +4,47 @@
     <title>Admin Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-    <style>
-        body {
-            background: #0a0a0a;
-            color: white;
-            text-align: center;
-            font-family: Arial;
-        }
+    <!DOCTYPE html>
 
-        .login-box {
-            margin-top: 100px;
-        }
+<html>
+<head>
+    <title>Admin Login</title>
 
-        input {
-            padding: 10px;
-            width: 250px;
-            border-radius: 5px;
-            border: none;
-        }
+```
+<style>
+    body {
+        background: #0a0a0a;
+        color: white;
+        text-align: center;
+        font-family: Arial;
+    }
 
-        button {
-            padding: 10px 20px;
-            background: cyan;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+    .login-box {
+        margin-top: 100px;
+    }
 
-        button:hover {
-            background: #00cccc;
-        }
-    </style>
+    input {
+        padding: 10px;
+        width: 250px;
+        border-radius: 5px;
+        border: none;
+        margin: 5px;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: cyan;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #00cccc;
+    }
+</style>
+
 </head>
 
 <body>
@@ -43,21 +52,42 @@
 <h2>Secure Admin Portal</h2>
 
 <div class="login-box">
-    <form action="/login" method="POST">
-        <input type="text" name="username" placeholder="Username" required><br><br>
-        <input type="password" name="password" placeholder="Password" required><br><br>
-        <button type="submit">Login</button>
-    </form>
+    <!-- ✅ Disable autofill -->
+    <form action="/login" method="POST" autocomplete="off">
 
-    <!-- Messages -->
-    {% if error %}
-        <p style="color:yellow;">{{ error }}</p>
-    {% endif %}
 
-    {% if retry %}
-        <p style="color:red;">{{ retry }}</p>
-    {% endif %}
+    <!-- Hidden fake fields to block browser autofill -->
+    <input type="text" name="fakeuser" style="display:none">
+    <input type="password" name="fakepass" style="display:none">
+
+    <input type="text" name="username" placeholder="Username" autocomplete="off" required><br><br>
+    <input type="password" name="password" placeholder="Password" autocomplete="new-password" required><br><br>
+
+    <button type="submit">Login</button>
+</form>
+
+<!-- Messages -->
+{% if error %}
+    <p style="color:yellow;">{{ error }}</p>
+{% endif %}
+
+{% if retry %}
+    <p style="color:red;">{{ retry }}</p>
+{% endif %}
+
 </div>
+
+<!-- ✅ Force clear fields -->
+
+<script>
+    window.onload = function () {
+        document.querySelector("form").reset();
+    };
+</script>
+
+</body>
+</html>
+
 
 </body>
 </html>

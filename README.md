@@ -98,17 +98,21 @@ pip install flask
 python app.py
 4️⃣ Open in Browser
 http://127.0.0.1:5000
-## 🧪 How It Works
-User enters credentials on login page
-System logs data into database
-Risk level is calculated
-IP attempts are counted
-If attempts ≥ 7 → marked suspicious
-Dashboard displays:
-Logs
-Charts
-Alerts
-Location map
+## ⚙️ How It Works
+A realistic login page is presented to users (attackers/bots).
+When credentials are entered, they are not verified but captured and stored.
+The system logs:
+Username
+Password
+IP address
+Timestamp
+Risk level
+A risk analysis engine classifies each attempt as Low, Medium, or High based on suspicious patterns.
+If a particular IP repeatedly attempts login (e.g., 7+ times):
+It is marked as suspicious
+An alert is triggered
+The attacker’s IP is tracked and its geolocation is displayed on the dashboard.
+All activity is visualized in a dashboard with charts, logs, and alerts.
 ## 🔄 System Flow
 Login Page → Capture Data → Risk Analysis → Database →
 IP Tracking → Dashboard → Alerts + Charts + Map
@@ -193,6 +197,11 @@ Admin authentication system
 * Shows city, country, ISP
 * Displays location on Google Map
 
+## 🎯 Purpose
+To understand how attackers behave
+To detect brute-force attacks and suspicious patterns
+To monitor repeated login attempts from the same IP
+To simulate real-world cybersecurity defense systems
 
 ## ⭐ Key Takeaway
 

@@ -87,15 +87,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 let message = "⚠️ Suspicious IP Detected\n------------------------\n";
 
-                // Show only first 5 IPs
-suspicious.slice(0, 5).forEach(ip => {
-    message += `IP: ${ip[0]} | Attempts: ${ip[1]}\n`;
-});
+                suspicious.slice(0, 5).forEach(ip => {
+                    message += `IP: ${ip[0]} | Attempts: ${ip[1]}\n`;
+                });
 
-// If more than 5, show summary
-if (suspicious.length > 5) {
-    message += `\n+${suspicious.length - 5} more...`;
-}
+                if (suspicious.length > 5) {
+                    message += `\n+${suspicious.length - 5} more...`;
+                }
 
                 alert(message);
                 sessionStorage.setItem("shownIPAlert", "true");
@@ -131,17 +129,28 @@ if (suspicious.length > 5) {
 });
 
 
-// ---------- 🌍 MAP FUNCTION ----------
+// ---------- 🌍 MAP FUNCTION (FIXED) ----------
 function showLocationOnMap(ip) {
 
     const mapFrame = document.getElementById("mapFrame");
     const mapContainer = document.getElementById("mapContainer");
+    const locationText = document.getElementById("locationText");
 
-    if (!mapFrame || !mapContainer) return;
+    if (!mapFrame || !mapContainer || !locationText) return;
 
-    fetch(`https://ip-api.com/json/${ip}`)
+    // ✅ Handle localhost
+    if (ip === "127.0.0.1" || ip.startsWith("192.168")) {
+        locationText.innerHTML = "⚠️ Local/Private IP (Location not available)";
+        mapFrame.src = "";
+        return;
+    }
+
+    // ✅ Using HTTP as you requested
+    fetch(`http://ip-api.com/json/${ip}`)
         .then(res => res.json())
         .then(data => {
+
+            console.log("API RESPONSE:", data); // Debug
 
             if (data.status === "success") {
 
@@ -150,21 +159,20 @@ function showLocationOnMap(ip) {
 
                 mapFrame.src = `https://www.google.com/maps?q=${lat},${lon}&z=5&output=embed`;
 
-                const locationText = document.getElementById("locationText");
-                if (locationText) {
-                    locationText.innerHTML =
-                        `Location: ${data.city}, ${data.country} <br>ISP: ${data.isp}`;
-                }
+                locationText.innerHTML =
+                    `📍 ${data.city}, ${data.country} <br>ISP: ${data.isp}`;
 
                 mapContainer.scrollIntoView({ behavior: "smooth" });
 
             } else {
-                alert("Location not found");
+                locationText.innerHTML =
+                    "⚠️ Location not available (API limit / blocked)";
             }
 
         })
-        .catch(() => {
-            alert("Error fetching location");
+        .catch(error => {
+            console.error("Fetch Error:", error);
+            locationText.innerHTML = "❌ Error fetching location";
         });
 }
 

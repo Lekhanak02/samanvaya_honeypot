@@ -4,7 +4,8 @@ from datetime import datetime
 import random
 import csv
 import io
-import requests   # ✅ FIXED (missing)
+import requests
+import time
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -39,30 +40,19 @@ def analyze_risk(username, password):
         return "Medium"
     return "Low"
 
-# ---------------- RANDOM IP ----------------
-def random_ip():
-    sample_ips = [
-        "8.8.8.8",
-        "1.1.1.1",
-        "142.250.183.78",
-        "185.199.108.153",
-        "13.127.0.1"
-    ]
-    return random.choice(sample_ips)
+# ---------------- GET REAL IP ----------------
+def get_real_ip():
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0]
+    return request.remote_addr
 
 # ---------------- ALERT FUNCTION ----------------
 def send_alert(ip, attempts):
     try:
-        res = requests.get(f"https://ip-api.com/json/{ip}").json()
-
-        city = res.get("city", "Unknown")
-        country = res.get("country", "Unknown")
-
+        res = requests.get(f"http://ip-api.com/json/{ip}").json()
         print("\n⚠️ ALERT: Suspicious Activity Detected")
         print(f"IP: {ip}")
-        print(f"Location: {city}, {country}")
-        print(f"Attempts: {attempts}\n")
-
+        print(f"Attempts: {attempts}")
     except:
         print("Error fetching location")
 
@@ -77,8 +67,11 @@ def login_attempt():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    # 🔥 Use fixed IP for demo (IMPORTANT)
-    ip_addr = request.remote_addr
+    ip_addr = get_real_ip()
+
+    # Localhost fix
+    if ip_addr == "127.0.0.1":
+        ip_addr = "8.8.8.8"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     risk = analyze_risk(username, password)
@@ -86,39 +79,41 @@ def login_attempt():
     conn = sqlite3.connect('attacks.db')
     cursor = conn.cursor()
 
-    # Insert log
+    # Save log
     cursor.execute('''
         INSERT INTO logs (username, password, ip_address, timestamp, risk_level)
         VALUES (?, ?, ?, ?, ?)
     ''', (username, password, ip_addr, timestamp, risk))
     conn.commit()
 
-    # 🔥 Count attempts
+    # Count attempts
     cursor.execute('SELECT COUNT(*) FROM logs WHERE ip_address = ?', (ip_addr,))
     attempts = cursor.fetchone()[0]
 
-    # 🔥 Trigger alert
+    conn.close()
+
+    # Alert (no redirect)
     if attempts >= 7:
         send_alert(ip_addr, attempts)
 
-    conn.close()
+    # ---------------- FINAL REQUIRED FLOW ----------------
 
-    # ---------------- RISK FLOW ----------------
-    import time
-
+    # 🔴 HIGH → error + retry
     if risk == "High":
-        time.sleep(2)  # simulate security check
+        time.sleep(2)
         return render_template(
-        "login.html",
-        error="Processing request... Please wait.",
-        retry="Try again after some time."
-    )
+            "login.html",
+            error="Processing request... Please wait.",
+            retry="Try again after some time."
+        )
 
+    # 🟡 MEDIUM → OTP
     elif risk == "Medium":
         otp = str(random.randint(100000, 999999))
         session["otp"] = otp
         return render_template("otp.html", otp=otp)
 
+    # 🟢 LOW → SUCCESS
     else:
         return render_template("welcome.html")
 
@@ -147,14 +142,13 @@ def dashboard():
 
     cursor.execute('SELECT risk_level, COUNT(*) FROM logs GROUP BY risk_level')
     stats = dict(cursor.fetchall())
-    # 🔥 NEW: Find suspicious IPs (>= 7 attempts)
-    cursor.execute('''
-    SELECT ip_address, COUNT(*) as attempts
-    FROM logs
-    GROUP BY ip_address
-    HAVING attempts >= 7
-''')
 
+    cursor.execute('''
+        SELECT ip_address, COUNT(*) as attempts
+        FROM logs
+        GROUP BY ip_address
+        HAVING attempts >= 7
+    ''')
     suspicious_ips = cursor.fetchall()
 
     conn.close()
@@ -176,7 +170,7 @@ def dashboard():
         values=values,
         total=total,
         high=high,
-        suspicious_ips=suspicious_ips   # ✅ IMPORTANT
+        suspicious_ips=suspicious_ips
     )
 
 # ---------------- CSV DOWNLOAD ----------------
@@ -208,4 +202,4 @@ def download_csv():
 # ---------------- RUN ----------------
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000) 
