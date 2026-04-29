@@ -85,13 +85,15 @@
 
 <!-- DOWNLOAD BUTTON -->
 <button class="download-btn" onclick="downloadCSV()">Download Logs</button>
-
 <!-- DATA FOR CHART -->
 <script id="chart-data" type="application/json">
 {
     "labels": {{ labels | default([]) | tojson }},
     "values": {{ values | default([]) | tojson }}
 }
+</script>
+<script id="alert-data" type="application/json">
+{{ suspicious_ips | default([]) | tojson }}
 </script>
 
 <!-- JS -->

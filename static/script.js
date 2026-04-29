@@ -1,11 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+    // ---------- CHART DATA ----------
     const dataScript = document.getElementById("chart-data");
     if (!dataScript) return;
 
     let chartData;
     try {
-        chartData = JSON.parse(dataScript.textContent);
+        chartData = JSON.parse(dataScript.textContent || "{}");
     } catch {
         console.error("Invalid JSON data");
         return;
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // PIE
+    // ---------- PIE CHART ----------
     const pieCanvas = document.getElementById("pieChart");
     if (pieCanvas) {
         new Chart(pieCanvas.getContext("2d"), {
@@ -53,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // LINE
+    // ---------- LINE CHART ----------
     const lineCanvas = document.getElementById("lineChart");
     if (lineCanvas) {
         new Chart(lineCanvas.getContext("2d"), {
@@ -73,36 +74,72 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ✅ HIGH RISK ALERT
+    // ---------- 🔥 SUSPICIOUS IP POPUP ----------
+    const alertScript = document.getElementById("alert-data");
+
+    if (alertScript) {
+        try {
+            const suspicious = JSON.parse(alertScript.textContent || "[]");
+
+            if (Array.isArray(suspicious) &&
+                suspicious.length > 0 &&
+                !sessionStorage.getItem("shownIPAlert")) {
+
+                let message = "⚠️ Suspicious IP Detected\n------------------------\n";
+
+                // Show only first 5 IPs
+suspicious.slice(0, 5).forEach(ip => {
+    message += `IP: ${ip[0]} | Attempts: ${ip[1]}\n`;
+});
+
+// If more than 5, show summary
+if (suspicious.length > 5) {
+    message += `\n+${suspicious.length - 5} more...`;
+}
+
+                alert(message);
+                sessionStorage.setItem("shownIPAlert", "true");
+            }
+
+        } catch (e) {
+            console.error("Alert data error:", e);
+        }
+    }
+
+    // ---------- 🚨 HIGH RISK BANNER ----------
     const hasHighRisk = Array.from(document.querySelectorAll(".log-row"))
         .some(row => {
-            const risk = row.getAttribute("data-risk");
-            return risk === "High" || risk === "HIGH" || risk === "CRITICAL";
+            const risk = (row.getAttribute("data-risk") || "").toUpperCase();
+            return risk === "HIGH" || risk === "CRITICAL";
         });
 
-     if (hasHighRisk && !sessionStorage.getItem("shownHighRiskAlert")) {
-    const banner = document.createElement("div");
-    banner.textContent = "⚠️ High Risk Attack Detected!";
-    banner.style.background = "red";
-    banner.style.color = "white";
-    banner.style.padding = "10px";
-    banner.style.textAlign = "center";
-    document.body.prepend(banner);
+    if (hasHighRisk && !sessionStorage.getItem("shownHighRiskAlert")) {
+        const banner = document.createElement("div");
 
-    sessionStorage.setItem("shownHighRiskAlert", "true");
-}
+        banner.textContent = "⚠️ High Risk Attack Detected!";
+        banner.style.background = "linear-gradient(90deg, red, darkred)";
+        banner.style.fontWeight = "bold";
+        banner.style.fontSize = "18px";
+        banner.style.color = "white";
+        banner.style.padding = "10px";
+        banner.style.textAlign = "center";
+
+        document.body.prepend(banner);
+        sessionStorage.setItem("shownHighRiskAlert", "true");
+    }
 
 });
 
 
-// ✅ ADD YOUR FUNCTION HERE (OUTSIDE)
+// ---------- 🌍 MAP FUNCTION ----------
 function showLocationOnMap(ip) {
 
     const mapFrame = document.getElementById("mapFrame");
     const mapContainer = document.getElementById("mapContainer");
-     if (!mapFrame || !mapContainer) return;
 
-    fetch(`http://ip-api.com/json/${ip}`)
+    if (!mapFrame || !mapContainer) return;
+
+    fetch(`https://ip-api.com/json/${ip}`)
         .then(res => res.json())
         .then(data => {
 
@@ -114,7 +151,11 @@ function showLocationOnMap(ip) {
                 mapFrame.src = `https://www.google.com/maps?q=${lat},${lon}&z=5&output=embed`;
 
                 const locationText = document.getElementById("locationText");
-                locationText.innerHTML = `Location: ${data.city}, ${data.country} <br>ISP: ${data.isp}`;
+                if (locationText) {
+                    locationText.innerHTML =
+                        `Location: ${data.city}, ${data.country} <br>ISP: ${data.isp}`;
+                }
+
                 mapContainer.scrollIntoView({ behavior: "smooth" });
 
             } else {
@@ -126,6 +167,9 @@ function showLocationOnMap(ip) {
             alert("Error fetching location");
         });
 }
+
+
+// ---------- 🎯 ROW HIGHLIGHT ----------
 function highlightRow(row) {
     document.querySelectorAll(".log-row").forEach(r => {
         r.style.background = "";
@@ -134,3 +178,15 @@ function highlightRow(row) {
     row.style.background = "#003333";
 }
 
+
+// ---------- 📥 DOWNLOAD CSV ----------
+function downloadCSV() {
+    window.location.href = "/download";
+}
+
+
+// ---------- 🔄 RESET ALERT FLAGS ----------
+window.addEventListener("beforeunload", () => {
+    sessionStorage.removeItem("shownIPAlert");
+    sessionStorage.removeItem("shownHighRiskAlert");
+});

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP Verification</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+        .container {
+            margin-top: 100px;
+            padding: 30px;
+            border: 2px solid orange;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 0 15px orange;
+        }
+        input {
+            padding: 10px;
+            width: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 15px;
+            background: orange;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkorange;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔐 OTP Verification</h2>
+
+    <!-- Demo OTP -->
+    <p style="color:lightblue;">Your OTP: {{ otp }}</p>
+
+    <form action="/verify_otp" method="POST">
+        <input type="text" name="otp" placeholder="Enter OTP" required>
+        <br>
+        <button type="submit">Verify</button>
+    </form>
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

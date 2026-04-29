@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>High Risk Alert</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 60px;
+            padding: 30px;
+            border: 2px solid red;
+            border-radius: 12px;
+            width: 70%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 0 25px red;
+        }
+
+        h1 {
+            color: #ff3b3b;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            margin: 15px 0;
+            font-size: 18px;
+        }
+
+        .map-box {
+            margin-top: 20px;
+        }
+
+        iframe {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .btn {
+            margin-top: 25px;
+            padding: 12px 18px;
+            background: cyan;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            color: black;
+        }
+
+        .btn:hover {
+            background: #00cccc;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>⚠️ HIGH RISK ATTACK DETECTED</h1>
+
+    <div class="info">
+        <p><strong>IP Address:</strong> {{ ip }}</p>
+        <p><strong>Attempts:</strong> {{ attempts }}</p>
+        <p><strong>Location:</strong> <span id="locationText">Loading...</span></p>
+    </div>
+
+    <div class="map-box">
+        <iframe id="mapFrame" width="700" height="400"></iframe>
+    </div>
+
+    <br>
+    <a href="/dashboard" class="btn">Go to Dashboard</a>
+</div>
+
+<script>
+    const ip = "{{ ip }}";
+
+    const mapFrame = document.getElementById("mapFrame");
+    const locationText = document.getElementById("locationText");
+
+    fetch(`https://ip-api.com/json/${ip}`)
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.status === "success") {
+
+                const lat = data.lat;
+                const lon = data.lon;
+
+                // Map
+                mapFrame.src = `https://www.google.com/maps?q=${lat},${lon}&z=5&output=embed`;
+
+                // Location text
+                locationText.innerHTML =
+                    `${data.city}, ${data.country} <br> ISP: ${data.isp}`;
+
+            } else {
+                locationText.innerHTML = "Location not found";
+            }
+
+        })
+        .catch(() => {
+            locationText.innerHTML = "Error fetching location";
+        });
+</script>
+
+</body>
+</html>
